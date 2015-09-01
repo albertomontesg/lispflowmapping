@@ -2,8 +2,8 @@ define(['angularAMD',
     'app/routingConfig',
     'angular-ui-router',
     'app/core/core.services',
-    'common/yangutils/yangutils.services'
-], function() {
+    'common/yangutils/yangutils.services',
+    'app/lispui/topology/lispui.topology.services'], function() {
 
     var lispui = angular.module('app.lispui', ['ui.router.state',
         'app.core', 'app.common.yangUtils', 'restangular'
@@ -97,6 +97,16 @@ define(['angularAMD',
             }
         });
 
+        $stateProvider.state('main.lispui.topology', {
+            url: '/topology',
+            views: {
+                'lispui': {
+                    templateUrl: '/src/app/lispui/topology/topology.tpl.html',
+                    controller: 'TopologyLispuiCtrl'
+                }
+            }
+        });
+
         NavHelperProvider.addToMenu('lispui', {
             "link": "#/lispui/keys",
             "title": "LISP UI",
@@ -108,13 +118,10 @@ define(['angularAMD',
             }
         });
 
-        NavHelperProvider.addControllerUrl(
-            'app/lispui/lispui.controller');
-        NavHelperProvider.addControllerUrl(
-            'app/lispui/keys/lispui.key.controller');
-        NavHelperProvider.addControllerUrl(
-            'app/lispui/mappings/lispui.mapping.controller'
-        );
+        NavHelperProvider.addControllerUrl('app/lispui/lispui.controller');
+        NavHelperProvider.addControllerUrl('app/lispui/keys/lispui.key.controller');
+        NavHelperProvider.addControllerUrl('app/lispui/mappings/lispui.mapping.controller');
+        NavHelperProvider.addControllerUrl('app/lispui/topology/lispui.topology.controller');
 
     });
 
