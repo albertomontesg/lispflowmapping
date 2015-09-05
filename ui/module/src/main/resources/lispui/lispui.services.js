@@ -534,8 +534,170 @@ define(['app/lispui/lispui.module'], function(lispui) {
         }
     ]);
 
-    lispui.register.factory('LispuiUtils', ['$sce',
-        function($sce) {
+    lispui.register.factory('LispuiTopologySvc', ['LispuiDashboardSvc', 'LispuiUtils',
+        function (LispuiDashboardSvc, LispuiUtils) {
+            api = {};
+
+            api.getIID = function () {
+                return LispuiDashboardSvc.getAll().get().then(function(data) {
+                    var iids = [];
+                    for (iid of data['mapping-database']['instance-id']) {
+                        if (iid.mapping != null)
+                            iids.push(parseInt(iid.iid));
+                    }
+                    // Sorting the InstanceID's
+                    iids.sort(function(a,b) { return a-b;});
+                    return iids;
+                });
+            };
+
+            api.getMapping = function (iid) {
+                return LispuiDashboardSvc.getAll().get().then(function (data) {
+                    var mappings = [];
+                    for (iidData of data['mapping-database']['instance-id']) {
+                        if (iidData.iid == iid && iidData.mapping != null)
+                            mappings = iidData.mapping;
+                    }
+                    return mappings;
+                });
+            };
+
+            api.getTopologyData = function (iid) {
+                return api.getMapping(iid).then(function (mapping) {
+                    console.log('iid:', iid);
+                    console.log('mapping:', mapping);
+                    var eidNodes = [];
+                        rlocNodes = [];
+                        links = [];
+                        groups = [];
+                        nodes = [];
+                        index = 0;
+                    for (m of mapping) {
+                        console.log('map:', m);
+                        var map = {};
+                        map.id = index;
+                        map.name = m.eid;
+                        map.address = m.eid;
+                        var isMultipleHosts = api.isMultipleHosts(m);
+                        map.iconType = (isMultipleHosts) ? 'hostgroup' : 'host';
+                        index++;
+                        eidNodes.push(map);
+                        nodes.push(map);
+
+                        // Store the nodes to then link them
+                        var n = [map.id];
+
+                        for (rloc of m.LocatorRecord) {
+                            var loc = {};
+                            loc.id = index;
+                            loc.name = rloc.name;
+                            loc.address = LispuiUtils.getAddress(rloc.LispAddressContainer);
+                            loc.iconType = 'router';
+
+                            //check if the rloc is stored previosly
+                            var id = api.rlocIsStored(rlocNodes, loc)
+                            if (id < 0) {
+                                rlocNodes.push(loc);
+                                nodes.push(loc);
+                                n.push(loc.id);
+                                index++;
+                            } else {
+                                n.push(id);
+                            }                     
+                        }
+                        for (i of n) {
+                            var link = api.getLink(map.id, i);
+                            links.push(link);
+                        }
+
+                        console.log('nodes:', n);
+                        if (m['site-id'] != null) {
+                            if (api.isSiteId(groups, m['site-id'][0])) {
+                                for (i=0; i<groups.length; i++) {
+                                    if (groups[i].name == m['site-id'][0])
+                                        groups[i].nodes.push(n);
+                                }
+                            } else {
+                                nodeSet = {
+                                    iconType: 'groupm', 
+                                    type: 'NodeSet', 
+                                    nodes: n, 
+                                    root: n[n.length-1],
+                                    name: m['site-id'][0]
+                                };
+                                groups.push(nodeSet);
+                            }
+                        }
+                    }
+                    console.log('eids:', eidNodes);
+                    console.log('rlocs:', rlocNodes);
+                    console.log('links1:', links);
+                    var cloud = {};
+                    cloud.id = index;
+                    cloud.name = 'Network';
+                    cloud.address = 'Network';
+                    cloud.iconType = 'cloud';
+                    nodes.push(cloud);
+                    for (rloc of rlocNodes) {
+                        links.push(api.getLink(cloud.id, rloc.id));
+                    }
+                    console.log('cloud:', cloud);
+                    console.log('links:', links);
+                    console.log('groups:', groups);
+                    for (item of groups) {
+                        item.id = index;
+                        index++;
+                    }
+
+                    return {
+                        nodes: nodes,
+                        links: links,
+                        nodeSet: groups
+                    };
+                });
+            };
+
+            // Search at all rlocNodes list if the locator loc is in there
+            api.rlocIsStored = function (rlocNodes, loc) {
+                var id = -1;
+                for (l of rlocNodes) {
+                    if (l.address == loc.address)
+                        id = l.id;
+                }
+                console.log('id:', id);
+                return id;
+            }
+
+            api.getLink = function (source, target) {
+                var link = {"source": source, "target": target};
+                console.log('link', link);
+                return link;
+            };
+
+            api.isSiteId = function (groups, siteId) {
+                var isSiteId = false;
+                for (item of groups) {
+                    if (item.name == siteId)
+                        isSiteId = true;
+                }
+                return isSiteId;
+            };
+
+            api.isMultipleHosts = function(map) {
+                var isMultipleHosts = false;
+                if (Object.keys(map.LispAddressContainer)[0] == "Ipv4Address" && map.maskLength < 32)
+                    isMultipleHosts = true;
+                else if (Object.keys(map.LispAddressContainer)[0] == "Ipv6Address" && map.maskLength < 128)
+                    isMultipleHosts = true;
+                return isMultipleHosts;
+            }
+
+            return api;
+        }
+    ]);
+
+    lispui.register.factory('LispuiUtils', ['$filter',
+        function($filter) {
             var api = {};
 
             api.getLocale = function(label) {

@@ -10,6 +10,7 @@
     "LISP_EDIT_MAPPING": "Edit Mapping",
 
     "LISP_TOPOLOGY": "View Topology",
+    "LOAD_IID": "Load IID",
 
     "LOADING_NODE": "Loading...",
     "LOADING_ERROR": "Error at loading",

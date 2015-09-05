@@ -23,6 +23,11 @@
             <artifactId>lispflowmapping-ui-module</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.opendaylight.next</groupId>
+            <artifactId>next</artifactId>
+            <version>${next.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

@@ -1,0 +1,13 @@
+<div>
+    <h1>{{ 'LISP_TOPOLOGY' | translate }}</h1>
+    <!--     <link rel="stylesheet" type="text/css" href="src/app/lispui/topology/dest/css/next-graphic-component.css">
+ -->
+    <div class="col-lg-6">
+        <button class="btn btn-info add-row" ng-click="loadTopology(selectedIID)">{{ 'LOAD_IID' | translate }}</button>
+        <input type="number" ng-model="selectedIID" list="iidlist" min="0" max="maximumIIDvalue">
+        <datalist id="iidlist">
+            <option data-ng-repeat="iid in iids" value="{{iid}}">
+        </datalist>
+    </div>
+    <next class="next" id="lispui-topology-view" width="100%" height="1000px" marginheight="0" frameborder="0"></next>
+</div>

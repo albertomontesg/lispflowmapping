@@ -10,5 +10,10 @@
         <property name="directory" value="/lispui"/>
         <property name="requireJs" value="app/lispui/lispui.module"/>
         <property name="angularJs" value="app.lispui"/>
+        <property name="cssDependencies">
+            <list>
+                <value>src/app/lispui/topology/dest/css/next-graphic-component.css</value>
+            </list>
+        </property>
     </bean>
 </blueprint>
